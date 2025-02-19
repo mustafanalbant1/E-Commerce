@@ -211,6 +211,7 @@ const fetchUser = async (req, res, next) => {
       .status(401)
       .send({ error: "Please authenticate using a valid token" });
   }
+  console.log("Token:", token);
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET);
     req.user = data.user;
@@ -222,16 +223,22 @@ const fetchUser = async (req, res, next) => {
   }
 };
 
-app.post("/addtocart", async (req, res) => {
-  console.log("Adding to cart", req.body.itemId);
-  let userData = await Users.findOne({ _id: req.user.id });
-  userData.cartData[req.body.itemId] += 1;
-  await Users.findOneAndUpdate(
-    { _id: req.user.id },
-    { cartData: userData.cartData }
-  );
-  res.send("Added");
+app.post("/addtocart", fetchUser, async (req, res) => {
+  try {
+    console.log("Adding to cart", req.body.product_id);
+    let userData = await Users.findOne({ _id: req.user.id });
+    userData.cartData[req.body.product_id] += 1;
+    await Users.findOneAndUpdate(
+      { _id: req.user.id },
+      { cartData: userData.cartData }
+    );
+    res.json({ success: true, message: "Added to cart" });
+  } catch (error) {
+    console.error("Add to cart error:", error);
+    res.status(500).json({ success: false, error: "Failed to add to cart" });
+  }
 });
+
 app.post("/removefromcart", async (req, res) => {
   console.log("Removing from cart", req.body.itemId);
   let userData = await Users.findOne({ _id: req.user.id });

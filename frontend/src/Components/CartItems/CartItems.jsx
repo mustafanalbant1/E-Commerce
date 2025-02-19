@@ -12,12 +12,23 @@ const CartItems = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Cart Products:", data);
-        setProducts(data);
+        setProducts(data.products || []);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
       });
   }, []);
+
+  if (!products.length) {
+    return <div className="text-center py-8">Loading products...</div>;
+  }
+
+  const hasItemsInCart = Object.values(cartItems).some(
+    (quantity) => quantity > 0
+  );
+  if (!hasItemsInCart) {
+    return <div className="text-center py-8">Your cart is empty</div>;
+  }
 
   return (
     <div className="mx-4 sm:mx-8 md:mx-12 lg:mx-[100px] my-8 sm:my-12 md:my-16 lg:my-[100px]">

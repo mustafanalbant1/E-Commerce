@@ -41,21 +41,32 @@ const ShopContextProvider = (props) => {
   }, []);
 
   const addToCart = (itemId) => {
-    setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
-    if (localStorage.getItem("auth-token")) {
-      fetch(`${import.meta.env.VITE_API_URL}/addtocart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("auth-token"),
-        },
-        body: JSON.stringify({ product_id: itemId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data);
-        });
+    const token = localStorage.getItem("auth-token");
+    if (!token) {
+      console.error("Auth token is missing");
+      // Kullanıcıyı login sayfasına yönlendirebilirsiniz
+      return;
     }
+
+    fetch(`${import.meta.env.VITE_API_URL}/addtocart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": token,
+      },
+      body: JSON.stringify({ product_id: itemId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+        } else {
+          console.error("Failed to add to cart:", data.error);
+        }
+      })
+      .catch((error) => {
+        console.error("Error adding to cart:", error);
+      });
   };
 
   const getTotalCartAmount = () => {
@@ -89,6 +100,17 @@ const ShopContextProvider = (props) => {
         });
     }
   };
+
+  const getTotalCartItems = () => {
+    let total = 0;
+    for (const item in cartItems) {
+      if (cartItems[item] > 0) {
+        total += cartItems[item];
+      }
+    }
+    return total;
+  };
+
   return (
     <ShopContext.Provider
       value={{
@@ -97,6 +119,7 @@ const ShopContextProvider = (props) => {
         addToCart,
         removeFromCart,
         getTotalCartAmount,
+        getTotalCartItems,
       }}
     >
       {props.children}

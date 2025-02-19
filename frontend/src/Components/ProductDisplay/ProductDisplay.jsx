@@ -1,9 +1,23 @@
 import star_icon from "../../Components/assets/Frontend_Assets/star_icon.png";
 import { ShopContext } from "../../Context/ShopContext";
 import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+
 const ProductDisplay = (props) => {
   const { product } = props;
   const { addToCart } = useContext(ShopContext);
+  const navigate = useNavigate();
+
+  const handleAddToCart = () => {
+    const token = localStorage.getItem("auth-token");
+    if (!token) {
+      // Token yoksa login sayfasına yönlendir
+      navigate("/login");
+      return;
+    }
+    // Token varsa sepete ekle
+    addToCart(product.id);
+  };
 
   console.log("product in product display", product);
 
@@ -112,7 +126,7 @@ const ProductDisplay = (props) => {
               </div>
             </div>
             <button
-              onClick={() => addToCart(product.id)}
+              onClick={handleAddToCart}
               className="w-full md:w-1/2 lg:w-1/4 bg-red-500 text-white py-2 md:py-2.5 lg:py-3 px-4 md:px-5 lg:px-6 rounded-lg hover:bg-red-600 transition text-sm md:text-base lg:text-lg"
             >
               Add to Cart
